@@ -1,0 +1,15 @@
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE EXPRESSION #-}
+{-# SCRIPT_TYPE ASSET #-}
+let minimalAmountToBurn = this.quantity / 100
+match (tx) {
+    # we allow to burn only 1 percent or more
+    case burn: BurnTransaction => {
+        if (burn.quantity < minimalAmountToBurn) then {
+            throw("You can burn only 1 percent (or more) of current total supply")
+        }else{
+            true
+        }
+    }
+    case _ => true
+  }
