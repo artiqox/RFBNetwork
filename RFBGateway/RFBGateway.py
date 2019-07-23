@@ -65,35 +65,14 @@ try:
     config = configparser.RawConfigParser()
     config.read(CFG_FILE)
 
-    NODE = config.get('main', 'node')
-    NODE_PORT = config.getint('rfbnetwork', 'rfb_node_port')
-    MATCHER = config.get('main', 'matcher')
-    ORDER_FEE = config.getint('main', 'order_fee')
-    ORDER_LIFETIME = config.getint('main', 'order_lifetime')
-
-    PRIVATE_KEY = config.get('account', 'private_key')
-    ACCOUNT_ADDRESS = config.get('account', 'account_address')
-    amountAssetID = config.get('market', 'amount_asset')
-    priceAssetID = config.get('market', 'price_asset')
-
-    INTERVAL = config.getfloat('grid', 'interval')
-    TRANCHE_SIZE = config.getint('grid', 'tranche_size')
-    FLEXIBILITY = config.getint('grid', 'flexibility')
-    GRID_LEVELS = config.getint('grid', 'grid_levels')
-    GRID_BASE = config.get('grid', 'base').upper()
-    GRID_TYPE = config.get('grid', 'type').upper()
-
     LOGFILE = config.get('logging', 'logfile')
-
-    #BLACKBOT = pw.Address(privateKey=PRIVATE_KEY)
 
     RFBGATEWAY = config.get('rfbnetwork', 'rfb_gateway')
     RFBGATEWAYPORT = config.getint('rfbnetwork', 'rfb_gateway_port')
 
     log("-" * 80)
-    #log("          Address : %s" % BLACKBOT.address)
-    log("  Amount Asset ID : %s" % amountAssetID)
-    log("   Price Asset ID : %s" % priceAssetID)
+    log("  RFBGATEWAY: %s" % RFBGATEWAY)
+    log("  RFBGATEWAYPORT : %s" % RFBGATEWAYPORT)
     log("-" * 80)
     log("")
 except:
