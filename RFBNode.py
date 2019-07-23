@@ -46,6 +46,31 @@ COLOR_BLUE = "\033[1;34m"
 COLOR_WHITE = "\033[1;37m"
 
 #TODO: below line creates a dictionary with test files, it assumes the files exists on the server and it reads those to memory, we need to create those files if they dont exist
+def createDummyFile(fname, size):
+    #1. get the directory name
+    dname = os.path.dirname(fname)
+    
+    #2. create missing directories if any
+    if  dname != "" and not os.path.exists(dname):
+        os.makedirs(dname)
+        print ("create missing directory(ies) ", dname)
+    
+    #3. create missing files if any
+    if os.path.exists(fname):
+        print("file ", fname, " already exists")
+    else:
+        f = open(fname,'wb')
+        f.seek(size-1)
+        f.write(b"\0")
+        f.close()
+        print ("create missing file ", fname, "with size: ", os.stat(fname).st_size)
+
+createDummyFile('data/1k.txt', 1024)
+createDummyFile('data/10k.txt', 10240)
+createDummyFile('data/100k.txt', 102400)
+createDummyFile('data/1000k.txt', 1024000)
+createDummyFile('data/10000k.txt', 10240000)
+
 download_files = {'1k.txt': open('data/1k.txt', 'rb').read(),'10k.txt': open('data/10k.txt', 'rb').read(),'100k.txt': open('data/100k.txt', 'rb').read(),'1000k.txt': open('data/1000k.txt', 'rb').read(),'10000k.txt': open('data/10000k.txt', 'rb').read()}
 
 rfbNodes = []
