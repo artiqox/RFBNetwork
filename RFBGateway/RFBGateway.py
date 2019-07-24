@@ -70,7 +70,14 @@ try:
     log("%sReading config file '%s'" % (COLOR_RESET, CFG_FILE))
     config = configparser.RawConfigParser()
     config.read(CFG_FILE)
-
+    
+    DATA_API_URL = config.get('main', 'api_url')
+    NODE = config.get('main', 'node')
+    NETWORK = config.get('main', 'network')
+    RFBT_ADDRESS = config.get('main', 'rfbt_address')
+    
+    pw.setNode(node=NODE, chain=NETWORK)
+    
     LOGFILE = config.get('logging', 'logfile')
 
     RFBGATEWAY = config.get('rfbnetwork', 'rfb_gateway')
@@ -86,15 +93,20 @@ except:
     log("Exiting.")
     exit(1)
 
+#create missing results directory if any
+if not os.path.exists("results"):
+    os.makedirs("results")
+    print ("create missing results directory")
+
 async def saveTestsToPickle():
     CURRENT_HEIGHT = int(pw.height())
     for testId in list(testResults):
         if int(testId) <= CURRENT_HEIGHT-20:
             pickle.dump(testResults[testId], open("results/"+testId+".pickle", "wb"))            
             del testResults[testId]
+            pickle.dump(testResults, open("testResults.pickle", "wb"))
 
-    pickle.dump(finalDict, open("finalDict.pickle", "wb"))
-
+#old self testing module, not in use anymore but has nice stuff in for future references
 async def runTests():
     perm = permutations(rfbNodes.keys(), 2)
     list_of_tests = []
@@ -126,6 +138,7 @@ async def runTests():
                     responseMessage = responseData['message']
                     responsetaskDuration = responseData['taskDuration']
                     testResults.setdefault(testId, {}).setdefault(testNodeB, {}).setdefault(testNodeA, {})[usedHandler] = responseData
+                    pickle.dump(testResults, open("testResults.pickle", "wb"))
                     #print(responseStatus)
                     #print(responseMessage)
             except Exception as e:
@@ -144,6 +157,7 @@ async def runTests():
                     responseStatus = responseData['status']
                     responseMessage = responseData['message']
                     testResults.setdefault(testId, {}).setdefault(testNodeB, {}).setdefault(testNodeA, {})[usedHandler] = responseData
+                    pickle.dump(testResults, open("testResults.pickle", "wb"))
             except Exception as e:
                 print(str(e))
 
@@ -213,6 +227,7 @@ async def ShareResultsAPIHandler(request):
                                 if nodeA == testNode+':'+nodePort:
                                     #print('setting test results')
                                     testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testResultsNew[test][node][nodeA][usedHandler]
+                                    pickle.dump(testResults, open("testResults.pickle", "wb"))
                                     #print(testResults)
                                 else:
                                     print('He shall not try to load some of these tests results: '+testResultsNew[test])
@@ -227,6 +242,7 @@ async def ShareResultsAPIHandler(request):
                             for usedHandler in testConfirmationsNew[test][node][nodeA]:
                                 if node == testNode+':'+nodePort:
                                     testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testConfirmationsNew[test][node][nodeA][usedHandler]
+                                    pickle.dump(testResults, open("testResults.pickle", "wb"))
                                     #print(testResults)
                                 else:
                                     print('He shall not try to confirm some of these tests results: '+testConfirmationsNew[test])
