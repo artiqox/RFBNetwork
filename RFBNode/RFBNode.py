@@ -16,7 +16,6 @@ import asyncio
 import string
 from random import *
 from multidict import MultiDict
-#adding timedelta stuff for one thing only, scheduler, maybe we can find better way
 from datetime import timedelta
 #Maybe uuid not needed? to be analysed
 import uuid
