@@ -81,15 +81,15 @@ async def start_browser():
     webbrowser.open('http://localhost:8080', new=2)
     job.remove()
 
-async def cleanTestResults(CURRENT_RFB_HEIGHT):
-    LAST_GOOD_RFB_HEIGHT = int(CURRENT_RFB_HEIGHT) - 10
+async def cleanTestResults(CURRENT_HEIGHT):
+    LAST_GOOD_HEIGHT = int(CURRENT_HEIGHT) - 10
     
     for testId in list(testResults):
-        if int(testId) <= LAST_GOOD_RFB_HEIGHT:
+        if int(testId) <= LAST_GOOD_HEIGHT:
             del testResults[testId]
 
     for testId in list(testConfirmations):
-        if int(testId) <= LAST_GOOD_RFB_HEIGHT:
+        if int(testId) <= LAST_GOOD_HEIGHT:
             del testConfirmations[testId]
 
 async def register_ip():
@@ -178,12 +178,15 @@ async def register_ip():
                 for rfbNode in rfbNodes:
 
                     CURRENT_HEIGHT = str(pw.height())
-                    if int(CURRENT_HEIGHT[-1:]) >= 5:
-                        LAST_DIGIT = "5"
-                    else:
-                        LAST_DIGIT = "0"
                     
-                    testId = CURRENT_HEIGHT[:-1]+LAST_DIGIT
+                    #below should go to the gateway and aggregation to 5 min periods shall happen there
+                    #if int(CURRENT_HEIGHT[-1:]) >= 5:
+                    #    LAST_DIGIT = "5"
+                    #else:
+                    #    LAST_DIGIT = "0"
+                    
+                    #testId = CURRENT_HEIGHT[:-1]+LAST_DIGIT
+                    testId = CURRENT_HEIGHT
                     asyncio.ensure_future(cleanTestResults(testId))
                     fileUrl = 'http://'+rfbNode+'/downloadFile/'+fileName+'/'+testId+'/'+str(HOST_PORT)
             
