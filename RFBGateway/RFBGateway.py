@@ -16,6 +16,7 @@ import random
 from multidict import MultiDict
 import uuid
 from itertools import permutations
+import pickle
 #TODO: replace the get method (used only for registering the IP at the gateway) with aio
 from requests import get
 try:
@@ -34,7 +35,12 @@ COLOR_RED = "\033[1;31m"
 COLOR_BLUE = "\033[1;34m"
 COLOR_WHITE = "\033[1;37m"
 
-testResults = {}
+try:
+    testResults = pickle.load(open("testResults.pickle", "rb"))
+except (OSError, IOError) as e:
+    testResults = {}
+    pickle.dump(testResults, open("testResults.pickle", "wb"))
+
 rfbNodes = {}
 
 def log(msg):
@@ -79,6 +85,15 @@ except:
     log("Error reading config file")
     log("Exiting.")
     exit(1)
+
+async def saveTestsToPickle():
+    CURRENT_HEIGHT = int(pw.height())
+    for testId in list(testResults):
+        if int(testId) <= CURRENT_HEIGHT-20:
+            pickle.dump(testResults[testId], open("results/"+testId+".pickle", "wb"))            
+            del testResults[testId]
+
+    pickle.dump(finalDict, open("finalDict.pickle", "wb"))
 
 async def runTests():
     perm = permutations(rfbNodes.keys(), 2)
@@ -164,40 +179,6 @@ async def CheckAPIHandler(request):
         response_obj = { 'status' : 'failed', 'message': str(e) }
         return web.json_response(response_obj)
 
-async def ConfirmResultsAPIHandler(request):
-    """
-    POST handler ...
-    """
-    try:
-        data = await request.post()
-        peername = request.transport.get_extra_info('peername')
-        if peername is not None:
-            host, port = peername
-        testNodeB = data['nodeAddress']
-        nodePort = data['nodePort']
-        sourceHost = data['sourceHost']
-        testId = data['testId']
-        testNodeA = testId.split('_')[1]
-        nodeToken = data['nodeToken']
-        usedHandler = data['usedHandler']
-        fileName = data['fileName']
-        timestampStart = data['timestampStart']
-        if host == testNodeB and nodeToken == rfbNodes.get(testNodeB+':'+nodePort)['nodeToken'] == nodeToken:
-            testResults.setdefault(testId, {}).setdefault(testNodeB+':'+nodePort, {}).setdefault(testNodeA, {})[usedHandler] = str(data)
-            response_obj = { 'status': 'OK', 'message': testId }
-        #testResults.setdefault(testId, {})["usedHandler"] = usedHandler
-        #testResults.setdefault(testId, {}).setdefault(usedHandler, {})["fileName"] = fileName
-        #testResults.setdefault(testId, {}).setdefault(usedHandler, {})["fileSize"] = fileSize
-        #testResults.setdefault(testId, {}).setdefault(usedHandler, {})["timestampStart"] = str(timestampStart)
-        #testResults.setdefault(testId, {}).setdefault(usedHandler, {})["timestampEnd"] = str(timestampEnd)
-        #testResults.setdefault(testId, {}).setdefault(usedHandler, {})["taskDuration"] = taskDuration
-        else:
-            response_obj = { 'status': 'failed', 'message': 'try to register' }
-        return web.json_response(response_obj)
-    except Exception as e:
-        response_obj = { 'status' : 'failed', 'message': str(e) }
-        return web.json_response(response_obj)
-
 async def ShareResultsAPIHandler(request):
     """
     POST handler ...
@@ -212,6 +193,7 @@ async def ShareResultsAPIHandler(request):
         nodeToken = data['nodeToken']
         testConfirmationsNew = json.loads(data['testConfirmations'])
         testResultsNew = json.loads(data['testResults'])
+        CURRENT_HEIGHT = int(pw.height())
         print(host)
         print(testNode)
         print(nodeToken)
@@ -221,31 +203,33 @@ async def ShareResultsAPIHandler(request):
         print('---')
         if host == testNode and nodeToken == rfbNodes.get(testNode+':'+nodePort)['nodeToken']:
             for test in testResultsNew:
-                #print(test)
-                for node in testResultsNew[test]:
-                    #print(node)
-                    for nodeA in testResultsNew[test][node]:
-                        #print(nodeA)
-                        for usedHandler in testResultsNew[test][node][nodeA]:
-                            if nodeA == testNode+':'+nodePort:
-                                #print('setting test results')
-                                testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testResultsNew[test][node][nodeA][usedHandler]
-                                #print(testResults)
-                            else:
-                                print('He shall not try to load some of these tests results: '+testResultsNew[test])
+                if int(test) >= CURRENT_HEIGHT-10:
+                    #print(test)
+                    for node in testResultsNew[test]:
+                        #print(node)
+                        for nodeA in testResultsNew[test][node]:
+                            #print(nodeA)
+                            for usedHandler in testResultsNew[test][node][nodeA]:
+                                if nodeA == testNode+':'+nodePort:
+                                    #print('setting test results')
+                                    testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testResultsNew[test][node][nodeA][usedHandler]
+                                    #print(testResults)
+                                else:
+                                    print('He shall not try to load some of these tests results: '+testResultsNew[test])
 
             for test in testConfirmationsNew:
-                #print(test)
-                for node in testConfirmationsNew[test]:
-                    #print(node)
-                    for nodeA in testConfirmationsNew[test][node]:
-                        #print(nodeA)
-                        for usedHandler in testConfirmationsNew[test][node][nodeA]:
-                            if node == testNode+':'+nodePort:
-                                testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testConfirmationsNew[test][node][nodeA][usedHandler]
-                                #print(testResults)
-                            else:
-                                print('He shall not try to confirm some of these tests results: '+testConfirmationsNew[test])
+                if int(test) >= CURRENT_HEIGHT-10:
+                    #print(test)
+                    for node in testConfirmationsNew[test]:
+                        #print(node)
+                        for nodeA in testConfirmationsNew[test][node]:
+                            #print(nodeA)
+                            for usedHandler in testConfirmationsNew[test][node][nodeA]:
+                                if node == testNode+':'+nodePort:
+                                    testResults.setdefault(test, {}).setdefault(node, {}).setdefault(nodeA, {})[usedHandler] = testConfirmationsNew[test][node][nodeA][usedHandler]
+                                    #print(testResults)
+                                else:
+                                    print('He shall not try to confirm some of these tests results: '+testConfirmationsNew[test])
             #print(testResults)
 
             print('---')
@@ -298,11 +282,10 @@ app = web.Application()
 app.router.add_get('/', IndexHandler)
 app.router.add_post('/checkAPI', CheckAPIHandler)
 app.router.add_post('/registerAPI', RegisterAPIHandler)
-app.router.add_post('/confirmResults', ConfirmResultsAPIHandler)
 app.router.add_post('/shareResults', ShareResultsAPIHandler)
 
 scheduler = AsyncIOScheduler()
-#scheduler.add_job(runTests, 'interval', seconds=60)
+scheduler.add_job(saveTestsToPickle, 'interval', seconds=300)
 scheduler.start()
 
 # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
