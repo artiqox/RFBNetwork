@@ -70,7 +70,14 @@ try:
     log("%sReading config file '%s'" % (COLOR_RESET, CFG_FILE))
     config = configparser.RawConfigParser()
     config.read(CFG_FILE)
-
+    
+    DATA_API_URL = config.get('main', 'api_url')
+    NODE = config.get('main', 'node')
+    NETWORK = config.get('main', 'network')
+    RFBT_ADDRESS = config.get('main', 'rfbt_address')
+    
+    pw.setNode(node=NODE, chain=NETWORK)
+    
     LOGFILE = config.get('logging', 'logfile')
 
     RFBGATEWAY = config.get('rfbnetwork', 'rfb_gateway')
