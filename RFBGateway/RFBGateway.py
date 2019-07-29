@@ -17,6 +17,7 @@ from multidict import MultiDict
 import uuid
 from itertools import permutations
 import pickle
+import ssl
 #TODO: replace the get method (used only for registering the IP at the gateway) with aio
 from requests import get
 try:
@@ -307,6 +308,8 @@ scheduler.start()
 # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
 print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 try:
-    web.run_app(app, port=RFBGATEWAYPORT)
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    ssl_context.load_cert_chain(certfile='/home/rfb/RFBNetwork/RFBGateway/fullchain.pem', keyfile='/home/rfb/RFBNetwork/RFBGateway/privkey.pem')
+    web.run_app(app, port=RFBGATEWAYPORT, ssl_context=ssl_context)
 except (KeyboardInterrupt, SystemExit):
     pass
