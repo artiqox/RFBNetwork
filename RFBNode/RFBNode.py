@@ -130,7 +130,7 @@ async def register_ip():
         print('Registering at gateways.')
         for gateway in set(rfbGateways):
             print('Gateway '+gateway+' response:')
-            gatewayUrl = 'http://'+str(gateway)+'/checkAPI'
+            gatewayUrl = 'https://'+str(gateway)+'/checkAPI'
             parameters = {'nodeAddress': NODE_ADDRESS[0],
                           'nodePort': str(HOST_PORT),
                           'nodeToken': nodeToken,
@@ -147,7 +147,7 @@ async def register_ip():
                     NEW_NODE_ADDRESS = get('https://api.ipify.org').text
                     if NEW_NODE_ADDRESS != NODE_ADDRESS[0] or responseStatus != "success":
                         NODE_ADDRESS[0] = NEW_NODE_ADDRESS
-                        gatewayUrl = 'http://'+str(gateway)+'/registerAPI'
+                        gatewayUrl = 'https://'+str(gateway)+'/registerAPI'
                         parameters = {'nodeAddress': NODE_ADDRESS[0],
                                       'nodePort': str(HOST_PORT),
                                       'nodeToken': nodeToken,
@@ -232,7 +232,7 @@ async def register_ip():
                             print(str(e))
                 async with ClientSession() as session:
                     for gateway in set(rfbGateways):
-                        gatewayUrl = 'http://'+str(gateway)+'/shareResults'
+                        gatewayUrl = 'https://'+str(gateway)+'/shareResults'
                         parameters = {'nodeAddress': NODE_ADDRESS[0],
                                       'nodePort': str(HOST_PORT),
                                       'nodeToken': nodeToken,
@@ -250,7 +250,7 @@ async def register_ip():
 async def confirm_testId(testId, sourceHost, usedHandler, fileName, timestampStart, timestampEnd, taskDuration):
     async with ClientSession() as session:
         for gateway in set(rfbGateways):
-            gatewayUrl = 'http://'+str(gateway)+'/confirmTestId'
+            gatewayUrl = 'https://'+str(gateway)+'/confirmTestId'
             parameters = {'nodeAddress': NODE_ADDRESS[0],
                           'nodePort': str(HOST_PORT),
                           'sourceHost': sourceHost,
