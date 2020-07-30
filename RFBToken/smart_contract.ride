@@ -1,15 +1,21 @@
 {-# STDLIB_VERSION 3 #-}
 {-# CONTENT_TYPE EXPRESSION #-}
 {-# SCRIPT_TYPE ASSET #-}
+let RFBId = base58'DWCuXbcXtrCkSKNX3D2uxh7zHh72SN7tC5eQXK92tC5'
 let minimalAmountToBurn = this.quantity / 100
-match (tx) {
-    # we allow to burn only 1 percent or more
+let assetId = base58'BvaMEHy8zhcQpv2JvPCQmecZNrfqQXzyJkXXDGPMrjZ3'
+match tx {
     case burn: BurnTransaction => {
         if (burn.quantity < minimalAmountToBurn) then {
             throw("You can burn only 1 percent (or more) of current total supply")
         }else{
             true
         }
-    }
+    }    
+    case ex: ExchangeTransaction =>
+        let pair = AssetPair(assetId, unit)
+        let rate = (fraction(1000000000,extract(assetInfo(RFBId)).quantity,this.quantity))
+        let rateDiff = rate - fraction(100000000, ex.price, ex.amount)
+        ex.buyOrder.assetPair == pair && rateDiff > -100 && rateDiff < 100
     case _ => true
-  }
+}
